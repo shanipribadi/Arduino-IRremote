@@ -74,6 +74,58 @@ int MATCH_SPACE(int measured_ticks, int desired_us) {return MATCH(measured_ticks
 // Debugging versions are in IRremote.cpp
 #endif
 
+void IRsend::sendPDM(uint32_t data, const struct ir_protocol *p)
+{
+    uint32_t d;
+    enableIROut(p->freq);
+    for (uint8_t j = 0; j < p->repeat; j++){
+	d = data;
+	mark(p->hdr_mark);
+	space(p->hdr_space);
+	for (uint8_t i = 0; i < p->bits; i++) {
+	    if (d & 0x01) {
+		mark(p->bit_mark);
+		space(p->one_space);
+	    }
+	    else {
+		mark(p->bit_mark);
+		space(p->zero_space);
+	    }
+	    d >>= 1;
+	}
+    }
+}
+
+void IRsend::sendNational(uint32_t data)
+{
+    static const struct ir_protocol national_protocol = {
+	NATIONAL_HDR_MARK,
+	NATIONAL_HDR_SPACE,
+	NATIONAL_BIT_MARK,
+	NATIONAL_ONE_SPACE,
+	NATIONAL_ZERO_SPACE,
+	NATIONAL_BITS,
+	NATIONAL_FREQ,
+	NATIONAL_REPEAT
+    };
+    sendPDM(data, &national_protocol);
+}
+
+void IRsend::sendLGP(uint32_t data)
+{
+    static const struct ir_protocol lgp_protocol = {
+	LGP_HDR_MARK,
+	LGP_HDR_SPACE,
+	LGP_BIT_MARK,
+	LGP_ONE_SPACE,
+	LGP_ZERO_SPACE,
+	LGP_BITS,
+	LGP_FREQ,
+	LGP_REPEAT
+    };
+    sendPDM(data, &lgp_protocol);
+}
+
 #ifdef SEND_NEC
 void IRsend::sendNEC(unsigned long data, int nbits)
 {

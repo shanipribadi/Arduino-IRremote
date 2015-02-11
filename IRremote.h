@@ -17,6 +17,7 @@
 #ifndef IRremote_h
 #define IRremote_h
 
+#include <stdio.h>
 // The following are compile-time library options.
 // If you change them, recompile the library.
 // If DEBUG is defined, a lot of debugging output will be printed during decoding.
@@ -152,6 +153,9 @@ public:
 #ifdef SEND_WHYNTER
   void sendWhynter(unsigned long data, int nbits);
 #endif
+  void sendPDM(uint32_t data, const struct ir_protocol *p);
+  void sendNational(uint32_t data);
+  void sendLGP(uint32_t data);
 #ifdef SEND_NEC 
   void sendNEC(unsigned long data, int nbits);
 #endif

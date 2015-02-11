@@ -23,6 +23,8 @@
 #include <WProgram.h>
 #endif
 
+#include <stdio.h>
+
 // define which timer to use
 //
 // Uncomment the timer you wish to use on your board.  If you
@@ -186,6 +188,23 @@
 #define SAMSUNG_ZERO_SPACE  560
 #define SAMSUNG_RPT_SPACE 2250
 
+#define NATIONAL_HDR_MARK  3450
+#define NATIONAL_HDR_SPACE 3500
+#define NATIONAL_BIT_MARK  875
+#define NATIONAL_ONE_SPACE 2600
+#define NATIONAL_ZERO_SPACE  900
+#define NATIONAL_BITS 32
+#define NATIONAL_FREQ 38
+#define NATIONAL_REPEAT 2
+
+#define LGP_HDR_MARK 3600
+#define LGP_HDR_SPACE 3300
+#define LGP_BIT_MARK 1000
+#define LGP_ONE_SPACE 2445
+#define LGP_ZERO_SPACE 710
+#define LGP_BITS 32
+#define LGP_FREQ 38
+#define LGP_REPEAT 2
 
 #define SHARP_BITS 15
 #define DISH_BITS 16
@@ -230,6 +249,17 @@ typedef struct {
   uint8_t rawlen;         // counter of entries in rawbuf
 } 
 irparams_t;
+
+struct ir_protocol {
+    uint16_t hdr_mark;
+    uint16_t hdr_space;
+    uint16_t bit_mark;
+    uint16_t one_space;
+    uint16_t zero_space;
+    uint8_t bits;
+    uint8_t freq;
+    uint8_t repeat;
+};
 
 // Defined in IRremote.cpp
 extern volatile irparams_t irparams;
