@@ -153,9 +153,11 @@ public:
 #ifdef SEND_WHYNTER
   void sendWhynter(unsigned long data, int nbits);
 #endif
-  void sendPDM(uint32_t data, const struct ir_protocol *p);
-  void sendNational(uint32_t data);
-  void sendLGP(uint32_t data);
+  void sendPDM(uint64_t data, const struct ir_protocol *p);
+  void sendPN(uint8_t temp, uint8_t pwr);
+  void sendPanasonic(uint64_t data);
+  void sendNational(uint64_t data);
+  void sendLGP(uint64_t data);
 #ifdef SEND_NEC 
   void sendNEC(unsigned long data, int nbits);
 #endif

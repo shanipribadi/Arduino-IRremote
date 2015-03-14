@@ -73,22 +73,76 @@ int MATCH_MARK(int measured_ticks, int desired_us) {return MATCH(measured_ticks,
 int MATCH_SPACE(int measured_ticks, int desired_us) {return MATCH(measured_ticks, (desired_us - MARK_EXCESS));}
 // Debugging versions are in IRremote.cpp
 #endif
-
-void IRsend::sendPDM(uint32_t data, const struct ir_protocol *p)
+void IRsend::sendPN(uint8_t temp, uint8_t pwr)
 {
-    uint32_t d;
+    static const struct ir_protocol pn_protocol = {
+	PN_HDR_MARK,
+	PN_HDR_SPACE,
+	PN_BIT_MARK,
+	PN_ONE_SPACE,
+	PN_ZERO_SPACE,
+	PN_BITS,
+	PN_FREQ,
+	PN_REPEAT
+    };
+    const struct ir_protocol *p;
+    p = & pn_protocol;
+
+    static const uint8_t head[8] = {0x02, 0x20, 0xe0, 0x04, 0x00, 0x00, 0x00, 0x06};
+    uint8_t data[19] = {0x02, 0x20, 0xe0, 0x04, 0x00, 0x38, 0x20, 0x80, 0xaf, 0x00, 0x00, 0x0e, 0xe0, 0x00, 0x00, 0x81, 0x00, 0x00, 0x00};
+    uint8_t d;
+    data[5] = pwr ^ 0x38;
+    data[6] = 0x20 | (temp << 1);
+    enableIROut(p->freq);
+    mark(p->hdr_mark);
+    space(p->hdr_space);
+    for (uint8_t j = 0; j < 8; j++) {
+	d = head[j];
+	for (uint8_t i = 0; i < 8; i++) {
+	    mark(p->bit_mark);
+	    if (d & 0x01) {
+		space(p->one_space);
+	    } else {
+		space(p->zero_space);
+	    }
+	    d >>= 1;
+	}
+    }
+    mark(p->bit_mark);
+    space(PN_DELAY_SPACE);
+    mark(p->hdr_mark);
+    space(p->hdr_space);
+    for (uint8_t j = 0; j < 19; j++) {
+	d = data[j];
+	for (uint8_t i = 0; i < 8; i++) {
+	    mark(p->bit_mark);
+	    if (d & 0x01) {
+		space(p->one_space);
+	    } else {
+		space(p->zero_space);
+	    }
+	    d >>= 1;
+	}
+	data[18] += data[j];
+    }
+    mark(p->bit_mark);
+    space(0);
+}
+
+
+void IRsend::sendPDM(uint64_t data, const struct ir_protocol *p)
+{
+    uint64_t d;
     enableIROut(p->freq);
     for (uint8_t j = 0; j < p->repeat; j++){
 	d = data;
 	mark(p->hdr_mark);
 	space(p->hdr_space);
 	for (uint8_t i = 0; i < p->bits; i++) {
+	    mark(p->bit_mark);
 	    if (d & 0x01) {
-		mark(p->bit_mark);
 		space(p->one_space);
-	    }
-	    else {
-		mark(p->bit_mark);
+	    } else {
 		space(p->zero_space);
 	    }
 	    d >>= 1;
@@ -96,8 +150,21 @@ void IRsend::sendPDM(uint32_t data, const struct ir_protocol *p)
     }
 }
 
-void IRsend::sendNational(uint32_t data)
-{
+void IRsend::sendPanasonic(uint64_t data) {
+    static const struct ir_protocol panasonic_protocol = {
+	PANASONIC_HDR_MARK,
+	PANASONIC_HDR_SPACE,
+	PANASONIC_BIT_MARK,
+	PANASONIC_ONE_SPACE,
+	PANASONIC_ZERO_SPACE,
+	PANASONIC_BITS,
+	PANASONIC_FREQ,
+	PANASONIC_REPEAT
+    };
+    sendPDM(data, &panasonic_protocol);
+}
+
+void IRsend::sendNational(uint64_t data) {
     static const struct ir_protocol national_protocol = {
 	NATIONAL_HDR_MARK,
 	NATIONAL_HDR_SPACE,
@@ -111,8 +178,7 @@ void IRsend::sendNational(uint32_t data)
     sendPDM(data, &national_protocol);
 }
 
-void IRsend::sendLGP(uint32_t data)
-{
+void IRsend::sendLGP(uint64_t data) {
     static const struct ir_protocol lgp_protocol = {
 	LGP_HDR_MARK,
 	LGP_HDR_SPACE,
